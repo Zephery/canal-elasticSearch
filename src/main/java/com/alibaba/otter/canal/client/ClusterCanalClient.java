@@ -1,5 +1,7 @@
 package com.alibaba.otter.canal.client;
 
+import com.alibaba.otter.canal.util.PropertiesUtil;
+
 /**
  * 集群模式的接收端
  * Created by SoleGlory on 2018/3/18.
@@ -11,7 +13,7 @@ public class ClusterCanalClient extends AbstractCanalClient {
     }
 
     public static void main(String args[]) {
-        String destination = "example";
+        String destination = PropertiesUtil.getDestination();
 
         // 基于固定canal server的地址，建立链接，其中一台server发生crash，可以支持failover
         // CanalConnector connector = CanalConnectors.newClusterConnector(
@@ -21,18 +23,18 @@ public class ClusterCanalClient extends AbstractCanalClient {
         // "stability_test", "", "");
 
         // 基于zookeeper动态获取canal server的地址，建立链接，其中一台server发生crash，可以支持failover
-        CanalConnector connector = CanalConnectors.newClusterConnector("127.0.0.1:2181", destination, "", "");
+        CanalConnector connector = CanalConnectors.newClusterConnector(PropertiesUtil.getClusterAddr(), destination, "", "");
 
-        final ClusterCanalClient clientTest = new ClusterCanalClient(destination);
-        clientTest.setConnector(connector);
-        clientTest.start();
+        final ClusterCanalClient clusterCanalClient = new ClusterCanalClient(destination);
+        clusterCanalClient.setConnector(connector);
+        clusterCanalClient.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
             public void run() {
                 try {
                     logger.info("## stop the canal client");
-                    clientTest.stop();
+                    clusterCanalClient.stop();
                 } catch (Throwable e) {
                     logger.warn("##something goes wrong when stopping canal:", e);
                 } finally {

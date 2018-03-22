@@ -1,6 +1,7 @@
 package com.alibaba.otter.canal.client;
 
 import com.alibaba.otter.canal.common.utils.AddressUtils;
+import com.alibaba.otter.canal.util.PropertiesUtil;
 
 import java.net.InetSocketAddress;
 
@@ -16,22 +17,20 @@ public class SimpleCanalClient extends AbstractCanalClient {
 
     public static void main(String args[]) {
         // 根据ip，直接创建链接，无HA的功能
-        String destination = "example";
+        String destination = PropertiesUtil.getDestination();
         String ip = AddressUtils.getHostIp();
-        CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, 11111),
-            destination,
-            "",
-            "");
+        CanalConnector connector = CanalConnectors.newSingleConnector(new InetSocketAddress(ip, PropertiesUtil.getClientPort()),
+            destination, "", "");
 
-        final SimpleCanalClient clientTest = new SimpleCanalClient(destination);
-        clientTest.setConnector(connector);
-        clientTest.start();
+        final SimpleCanalClient simpleCanalClient = new SimpleCanalClient(destination);
+        simpleCanalClient.setConnector(connector);
+        simpleCanalClient.start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
             public void run() {
                 try {
                     logger.info("## stop the canal client");
-                    clientTest.stop();
+                    simpleCanalClient.stop();
                 } catch (Throwable e) {
                     logger.warn("##something goes wrong when stopping canal:", e);
                 } finally {
